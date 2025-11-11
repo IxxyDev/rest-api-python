@@ -20,6 +20,8 @@ class SeedDataset:
     dairy_activity_id: int
     auto_activity_id: int
     logistics_activity_id: int
+    primary_task_ids: tuple[int, ...]
+    secondary_task_ids: tuple[int, ...]
 
 
 async def seed_reference_data(session: AsyncSession) -> SeedDataset:
@@ -129,6 +131,37 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
             row,
         )
 
+    tasks = [
+        {
+            "id": 5000,
+            "title": "Проверка вентиляции",
+            "description": "Плановый осмотр венткамер",
+            "building_id": 100,
+        },
+        {
+            "id": 5001,
+            "title": "Проверка пожарной сигнализации",
+            "description": "Ежеквартальные испытания",
+            "building_id": 100,
+        },
+        {
+            "id": 5002,
+            "title": "Замена лифта",
+            "description": "Полная модернизация лифтовой группы",
+            "building_id": 200,
+        },
+    ]
+    for row in tasks:
+        await session.execute(
+            text(
+                """
+                INSERT INTO tasks (id, title, description, building_id)
+                VALUES (:id, :title, :description, :building_id)
+                """
+            ),
+            row,
+        )
+
     await session.commit()
     return SeedDataset(
         primary_building_id=100,
@@ -143,4 +176,6 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
         dairy_activity_id=12,
         auto_activity_id=13,
         logistics_activity_id=14,
+        primary_task_ids=(5000, 5001),
+        secondary_task_ids=(5002,),
     )
