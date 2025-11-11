@@ -92,3 +92,24 @@ async def test_search_organizations_in_bbox(
     assert payload["total"] == 2
     names = [item["name"] for item in payload["items"]]
     assert names == ["ООО АвтоМир", "ООО Рога и Копыта"]
+
+
+async def test_get_organization_detail(
+    async_client: AsyncClient,
+    seed_dataset: SeedDataset,
+) -> None:
+    response = await async_client.get(f"/api/v1/organizations/{seed_dataset.meat_org_id}")
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["name"] == "ООО Рога и Копыта"
+    assert payload["building"]["address"] == "Ленинский проспект, 10"
+    assert payload["phones"] == ["+7-495-111-2233", "+7-495-111-4455"]
+    assert payload["activities"][0]["name"] == "Мясная продукция"
+
+
+async def test_get_organization_detail_not_found(
+    async_client: AsyncClient,
+) -> None:
+    response = await async_client.get("/api/v1/organizations/999999")
+    assert response.status_code == 404
