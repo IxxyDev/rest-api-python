@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.api.deps import get_api_key
-from app.api.v1 import organizations, activities
+from app.api.v1 import organizations, activities, tasks
 
 router = APIRouter()
 router.include_router(
@@ -13,6 +13,11 @@ router.include_router(
     activities.router,
     prefix="/activities",
     tags=["activities"],
+)
+router.include_router(
+    tasks.router,
+    prefix="/tasks",
+    tags=["tasks"],
 )
 
 
