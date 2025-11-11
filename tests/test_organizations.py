@@ -113,3 +113,16 @@ async def test_get_organization_detail_not_found(
 ) -> None:
     response = await async_client.get("/api/v1/organizations/999999")
     assert response.status_code == 404
+
+
+async def test_search_organizations_by_name(
+    async_client: AsyncClient,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/organizations/search",
+        params={"query": "Рога"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 1
+    assert payload["items"][0]["name"] == "ООО Рога и Копыта"
