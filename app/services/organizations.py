@@ -123,6 +123,25 @@ def serialize_organization(org: Organization) -> dict:
     }
 
 
+async def get_organization_detail(
+    session: AsyncSession,
+    organization_id: int,
+) -> Organization:
+    stmt = (
+        select(Organization)
+        .options(
+            selectinload(Organization.building),
+            selectinload(Organization.phones),
+            selectinload(Organization.activities),
+        )
+        .where(Organization.id == organization_id)
+    )
+    organization = await session.scalar(stmt)
+    if organization is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
+    return organization
+
+
 def _match_geo_filters(
     org: Organization,
     lat: float | None,

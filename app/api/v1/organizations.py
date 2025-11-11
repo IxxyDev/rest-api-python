@@ -8,6 +8,7 @@ from app.services.organizations import (
     list_organizations_for_building,
     search_organizations,
     serialize_organization,
+    get_organization_detail,
 )
 
 router = APIRouter()
@@ -49,3 +50,13 @@ async def search_organizations_endpoint(
     )
     items = [serialize_organization(org) for org in organizations]
     return {"total": len(items), "items": items}
+
+
+@router.get("/{organization_id}")
+async def get_organization(
+    organization_id: int,
+    _: str = Depends(get_api_key),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict:
+    organization = await get_organization_detail(session, organization_id)
+    return serialize_organization(organization)
