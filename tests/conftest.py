@@ -6,8 +6,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.db import session as db_session_module
 from app.db.base import Base
-from app.db.session import AsyncSessionFactory, engine, reset_engine
 from app.main import app
 from tests.factories import SeedDataset, seed_reference_data
 
@@ -20,10 +20,10 @@ def configure_settings() -> None:
     os.environ["API_KEY"] = TEST_API_KEY
     os.environ["DATABASE_URL"] = TEST_DB_URL
     get_settings.cache_clear()
-    reset_engine()
+    db_session_module.reset_engine()
     yield
     get_settings.cache_clear()
-    reset_engine()
+    db_session_module.reset_engine()
     db_path = Path("test.db")
     if db_path.exists():
         db_path.unlink()
@@ -31,7 +31,7 @@ def configure_settings() -> None:
 
 @pytest.fixture
 async def clean_database(configure_settings: None) -> None:
-    async with engine.begin() as conn:
+    async with db_session_module.engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield
@@ -39,7 +39,7 @@ async def clean_database(configure_settings: None) -> None:
 
 @pytest.fixture
 async def db_session(clean_database: None) -> AsyncSession:
-    async with AsyncSessionFactory() as session:
+    async with db_session_module.AsyncSessionFactory() as session:
         yield session
         await session.rollback()
 

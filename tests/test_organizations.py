@@ -30,3 +30,22 @@ async def test_list_organizations_in_building(
     assert first_item["activities"] == [
         {"id": seed_dataset.auto_activity_id, "name": "Автомобили", "level": 1, "parent_id": None}
     ]
+
+
+async def test_filter_organizations_by_activity(
+    async_client: AsyncClient,
+    seed_dataset: SeedDataset,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/organizations",
+        params={
+            "building_id": seed_dataset.primary_building_id,
+            "activity_id": seed_dataset.food_activity_id,
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["total"] == 1
+    assert payload["items"][0]["name"] == "ООО Рога и Копыта"
+    assert payload["items"][0]["activities"][0]["id"] == seed_dataset.meat_activity_id
