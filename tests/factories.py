@@ -35,7 +35,7 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
             "city": "Москва",
             "address": "Тверская улица, 15",
             "latitude": 55.765140,
-            "longitude": 37.605020,
+            "longitude": 37.635020,
         },
         {
             "id": 300,
