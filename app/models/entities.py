@@ -91,7 +91,10 @@ class Activity(Base):
         remote_side="Activity.id",
         back_populates="children",
     )
-    children: Mapped[list["Activity"]] = relationship(back_populates="parent")
+    children: Mapped[list["Activity"]] = relationship(
+        back_populates="parent",
+        cascade="all, delete-orphan",
+    )
     organizations: Mapped[list["Organization"]] = relationship(
         secondary=organization_activity_table,
         back_populates="activities",
