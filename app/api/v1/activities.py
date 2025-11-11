@@ -9,7 +9,10 @@ from app.services.activities import fetch_activity_tree
 router = APIRouter()
 
 
-@router.get("/tree")
+@router.get(
+    "/tree",
+    summary="Получить дерево видов деятельности",
+)
 async def get_activity_tree(
     max_level: int | None = Query(default=None, ge=1),
     _: str = Depends(get_api_key),

@@ -21,6 +21,6 @@ router.include_router(
 )
 
 
-@router.get("/health", tags=["health"])
+@router.get("/health", tags=["health"], summary="Проверить доступность API")
 def healthcheck(_: str = Depends(get_api_key)) -> dict[str, str]:
     return {"status": "ok"}

@@ -14,7 +14,10 @@ from app.services.organizations import (
 router = APIRouter()
 
 
-@router.get("")
+@router.get(
+    "",
+    summary="Список организаций арендаторов здания",
+)
 async def list_organizations(
     building_id: int = Query(..., gt=0),
     activity_id: int | None = Query(default=None, gt=0),
@@ -26,7 +29,10 @@ async def list_organizations(
     return {"total": len(items), "items": items}
 
 
-@router.get("/search")
+@router.get(
+    "/search",
+    summary="Геопоиск организаций по радиусу или прямоугольнику",
+)
 async def search_organizations_endpoint(
     lat: float | None = Query(default=None),
     lon: float | None = Query(default=None),
@@ -52,7 +58,10 @@ async def search_organizations_endpoint(
     return {"total": len(items), "items": items}
 
 
-@router.get("/{organization_id}")
+@router.get(
+    "/{organization_id}",
+    summary="Карточка организации",
+)
 async def get_organization(
     organization_id: int,
     _: str = Depends(get_api_key),

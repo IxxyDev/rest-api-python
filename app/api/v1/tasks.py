@@ -9,7 +9,10 @@ from app.services.tasks import list_tasks_for_building, serialize_task
 router = APIRouter()
 
 
-@router.get("")
+@router.get(
+    "",
+    summary="Задачи, запланированные для здания",
+)
 async def list_tasks(
     building_id: int = Query(..., gt=0),
     _: str = Depends(get_api_key),
