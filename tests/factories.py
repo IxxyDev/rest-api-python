@@ -19,6 +19,7 @@ class SeedDataset:
     meat_activity_id: int
     dairy_activity_id: int
     auto_activity_id: int
+    logistics_activity_id: int
 
 
 async def seed_reference_data(session: AsyncSession) -> SeedDataset:
@@ -61,6 +62,9 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
         {"id": 11, "name": "Мясная продукция", "parent_id": 10, "level": 2},
         {"id": 12, "name": "Молочная продукция", "parent_id": 10, "level": 2},
         {"id": 13, "name": "Автомобили", "parent_id": None, "level": 1},
+        {"id": 14, "name": "Логистика", "parent_id": None, "level": 1},
+        {"id": 15, "name": "Складская логистика", "parent_id": 14, "level": 2},
+        {"id": 16, "name": "Холодильные склады", "parent_id": 15, "level": 3},
     ]
     for row in activities:
         await session.execute(
@@ -138,4 +142,5 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
         meat_activity_id=11,
         dairy_activity_id=12,
         auto_activity_id=13,
+        logistics_activity_id=14,
     )
