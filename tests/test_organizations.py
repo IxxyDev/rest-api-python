@@ -126,3 +126,19 @@ async def test_search_organizations_by_name(
     payload = response.json()
     assert payload["total"] == 1
     assert payload["items"][0]["name"] == "ООО Рога и Копыта"
+
+
+async def test_global_activity_search_returns_descendants(
+    async_client: AsyncClient,
+    seed_dataset: SeedDataset,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/organizations/search",
+        params={"activity_id": seed_dataset.food_activity_id},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 2
+    names = [item["name"] for item in payload["items"]]
+    assert "ООО Рога и Копыта" in names
+    assert "ООО Молочная ферма" in names
