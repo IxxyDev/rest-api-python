@@ -49,3 +49,46 @@ async def test_filter_organizations_by_activity(
     assert payload["total"] == 1
     assert payload["items"][0]["name"] == "ООО Рога и Копыта"
     assert payload["items"][0]["activities"][0]["id"] == seed_dataset.meat_activity_id
+
+
+async def test_search_organizations_within_radius(
+    async_client: AsyncClient,
+    seed_dataset: SeedDataset,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/organizations/search",
+        params={
+            "lat": 55.751,
+            "lon": 37.618,
+            "radius_km": 3,
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["total"] == 3
+    names = [item["name"] for item in payload["items"]]
+    assert "ООО Северный Ветер" not in names
+    assert "ООО Рога и Копыта" in names
+    assert "ООО АвтоМир" in names
+
+
+async def test_search_organizations_in_bbox(
+    async_client: AsyncClient,
+    seed_dataset: SeedDataset,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/organizations/search",
+        params={
+            "min_lat": 55.70,
+            "max_lat": 55.77,
+            "min_lon": 37.59,
+            "max_lon": 37.63,
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["total"] == 2
+    names = [item["name"] for item in payload["items"]]
+    assert names == ["ООО АвтоМир", "ООО Рога и Копыта"]

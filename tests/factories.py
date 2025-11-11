@@ -10,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class SeedDataset:
     primary_building_id: int
     secondary_building_id: int
+    distant_building_id: int
     meat_org_id: int
     auto_org_id: int
     dairy_org_id: int
+    northern_org_id: int
     food_activity_id: int
     meat_activity_id: int
     dairy_activity_id: int
@@ -34,6 +36,13 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
             "address": "Тверская улица, 15",
             "latitude": 55.765140,
             "longitude": 37.605020,
+        },
+        {
+            "id": 300,
+            "city": "Санкт-Петербург",
+            "address": "Невский проспект, 25",
+            "latitude": 59.934280,
+            "longitude": 30.335099,
         },
     ]
     for row in buildings:
@@ -68,6 +77,7 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
         {"id": 1000, "name": "ООО Рога и Копыта", "building_id": 100},
         {"id": 1001, "name": "ООО АвтоМир", "building_id": 100},
         {"id": 1002, "name": "ООО Молочная ферма", "building_id": 200},
+        {"id": 1003, "name": "ООО Северный Ветер", "building_id": 300},
     ]
     for row in organizations:
         await session.execute(
@@ -85,6 +95,7 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
         {"organization_id": 1000, "phone": "+7-495-111-4455"},
         {"organization_id": 1001, "phone": "+7-495-222-0001"},
         {"organization_id": 1002, "phone": "+7-495-333-8888"},
+        {"organization_id": 1003, "phone": "+7-812-123-4567"},
     ]
     for row in phones:
         await session.execute(
@@ -101,6 +112,7 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
         {"organization_id": 1000, "activity_id": 11},
         {"organization_id": 1001, "activity_id": 13},
         {"organization_id": 1002, "activity_id": 12},
+        {"organization_id": 1003, "activity_id": 13},
     ]
     for row in organization_activities:
         await session.execute(
@@ -120,6 +132,8 @@ async def seed_reference_data(session: AsyncSession) -> SeedDataset:
         meat_org_id=1000,
         auto_org_id=1001,
         dairy_org_id=1002,
+        northern_org_id=1003,
+        distant_building_id=300,
         food_activity_id=10,
         meat_activity_id=11,
         dairy_activity_id=12,
