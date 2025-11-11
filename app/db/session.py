@@ -7,7 +7,7 @@ from app.core.config import get_settings
 
 
 class Base(DeclarativeBase):
-
+    pass
 def _make_engine() -> AsyncEngine:
     settings = get_settings()
     return create_async_engine(settings.database_url, echo=settings.debug)
