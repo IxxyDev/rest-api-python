@@ -48,6 +48,8 @@ async def search_organizations(
     max_lat: float | None = None,
     min_lon: float | None = None,
     max_lon: float | None = None,
+    query: str | None = None,
+    activity_id: int | None = None,
 ) -> list[Organization]:
     stmt: Select[Organization] = select(Organization).options(
         selectinload(Organization.building),
@@ -55,11 +57,23 @@ async def search_organizations(
         selectinload(Organization.activities),
     )
 
+    filters = []
+    if activity_id is not None:
+        descendant_ids = await _collect_activity_branch(session, activity_id)
+        filters.append(Organization.activities.any(Activity.id.in_(descendant_ids)))
+    if query:
+        filters.append(Organization.name.ilike(f"%{query}%"))
+
+    if filters:
+        stmt = stmt.where(*filters)
+
     result = await session.scalars(stmt)
     organizations = list(result)
 
     filtered = [
-        org for org in organizations if _match_geo_filters(org, lat, lon, radius_km, min_lat, max_lat, min_lon, max_lon)
+        org
+        for org in organizations
+        if _match_geo_filters(org, lat, lon, radius_km, min_lat, max_lat, min_lon, max_lon)
     ]
     filtered.sort(key=lambda o: o.name)
     return filtered

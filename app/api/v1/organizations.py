@@ -31,7 +31,7 @@ async def list_organizations(
 
 @router.get(
     "/search",
-    summary="Геопоиск организаций по радиусу или прямоугольнику",
+    summary="Геопоиск, глобальный поиск по активности или названию",
 )
 async def search_organizations_endpoint(
     lat: float | None = Query(default=None),
@@ -41,6 +41,8 @@ async def search_organizations_endpoint(
     max_lat: float | None = Query(default=None),
     min_lon: float | None = Query(default=None),
     max_lon: float | None = Query(default=None),
+    query: str | None = Query(default=None, min_length=1),
+    activity_id: int | None = Query(default=None, gt=0),
     _: str = Depends(get_api_key),
     session: AsyncSession = Depends(get_db_session),
 ) -> dict:
@@ -53,6 +55,8 @@ async def search_organizations_endpoint(
         max_lat=max_lat,
         min_lon=min_lon,
         max_lon=max_lon,
+        query=query,
+        activity_id=activity_id,
     )
     items = [serialize_organization(org) for org in organizations]
     return {"total": len(items), "items": items}
