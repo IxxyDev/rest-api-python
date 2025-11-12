@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     project_name: str = "Organizations Directory API"
     api_version: str = "0.1.0"
     debug: bool = False
-    api_key: str = Field(alias="API_KEY")
+    api_key: str | None = Field(default=None, alias="API_KEY")
     database_url: str = Field(
         default="sqlite+aiosqlite:///./app.db",
         alias="DATABASE_URL",

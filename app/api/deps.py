@@ -12,12 +12,19 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 def get_api_key(api_key: str | None = Security(api_key_header)) -> str:
     settings = get_settings()
-    if api_key != settings.api_key:
+    configured_api_key = settings.api_key
+    if not configured_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="API key not configured",
+        )
+
+    if api_key != configured_api_key:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid or missing API key",
         )
-    return api_key
+    return configured_api_key
 
 
 async def get_db_session() -> AsyncIterator[AsyncSession]:
