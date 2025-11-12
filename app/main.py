@@ -25,10 +25,6 @@ tags_metadata = [
         "name": "activities",
         "description": "Дерево видов деятельности с вложенностью до требуемого уровня.",
     },
-    {
-        "name": "tasks",
-        "description": "Задачи, привязанные к зданиям справочника.",
-    },
 ]
 app = FastAPI(
     title=settings.project_name,

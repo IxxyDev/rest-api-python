@@ -54,15 +54,6 @@ def upgrade() -> None:
         sa.UniqueConstraint('name'),
     )
     op.create_table(
-        'tasks',
-        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('title', sa.String(length=255), nullable=False),
-        sa.Column('description', sa.Text(), nullable=True),
-        sa.Column('building_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['building_id'], ['buildings.id'], ondelete='CASCADE'),
-        sa.PrimaryKeyConstraint('id'),
-    )
-    op.create_table(
         'organization_activities',
         sa.Column('organization_id', sa.Integer(), nullable=False),
         sa.Column('activity_id', sa.Integer(), nullable=False),
@@ -96,7 +87,6 @@ def downgrade() -> None:
     op.drop_index('ix_activities_parent_id', table_name='activities')
     op.drop_table('organization_phones')
     op.drop_table('organization_activities')
-    op.drop_table('tasks')
     op.drop_table('organizations')
     op.drop_table('buildings')
     op.drop_table('activities')
