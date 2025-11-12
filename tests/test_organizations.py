@@ -142,3 +142,42 @@ async def test_global_activity_search_returns_descendants(
     names = [item["name"] for item in payload["items"]]
     assert "ООО Рога и Копыта" in names
     assert "ООО Молочная ферма" in names
+
+
+async def test_list_organizations_supports_pagination(
+    async_client: AsyncClient,
+    seed_dataset: SeedDataset,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/organizations",
+        params={
+            "building_id": seed_dataset.primary_building_id,
+            "limit": 1,
+            "offset": 1,
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 1
+    assert payload["items"][0]["name"] == "ООО Рога и Копыта"
+    assert payload["offset"] == 1
+
+
+async def test_geo_search_requires_complete_circle_parameters(
+    async_client: AsyncClient,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/organizations/search",
+        params={"lat": 55.7, "radius_km": 5},
+    )
+    assert response.status_code == 422
+
+
+async def test_geo_search_requires_complete_bbox_parameters(
+    async_client: AsyncClient,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/organizations/search",
+        params={"min_lat": 55.7, "max_lat": 55.8, "min_lon": 37.5},
+    )
+    assert response.status_code == 422

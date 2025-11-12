@@ -6,8 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.entities import Building
 
 
-async def list_buildings(session: AsyncSession) -> list[Building]:
-    stmt = select(Building).order_by(Building.city.asc(), Building.address.asc())
+async def list_buildings(session: AsyncSession, *, limit: int, offset: int) -> list[Building]:
+    stmt = (
+        select(Building)
+        .order_by(Building.city.asc(), Building.address.asc())
+        .offset(offset)
+        .limit(limit)
+    )
     result = await session.scalars(stmt)
     return list(result)
 

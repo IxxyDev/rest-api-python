@@ -15,6 +15,9 @@ async def list_organizations_for_building(
     session: AsyncSession,
     building_id: int,
     activity_id: int | None,
+    *,
+    limit: int,
+    offset: int,
 ) -> list[Organization]:
     await _ensure_building_exists(session, building_id)
     stmt: Select[Organization] = (
@@ -26,6 +29,8 @@ async def list_organizations_for_building(
         )
         .where(Organization.building_id == building_id)
         .order_by(Organization.name.asc())
+        .offset(offset)
+        .limit(limit)
     )
 
     if activity_id is not None:
@@ -47,14 +52,20 @@ async def search_organizations(
     min_lat: float | None = None,
     max_lat: float | None = None,
     min_lon: float | None = None,
-    max_lon: float | None = None,
-    query: str | None = None,
-    activity_id: int | None = None,
+        max_lon: float | None = None,
+        query: str | None = None,
+        activity_id: int | None = None,
+        limit: int,
+        offset: int,
 ) -> list[Organization]:
-    stmt: Select[Organization] = select(Organization).options(
-        selectinload(Organization.building),
-        selectinload(Organization.phones),
-        selectinload(Organization.activities),
+    stmt: Select[Organization] = (
+        select(Organization)
+        .options(
+            selectinload(Organization.building),
+            selectinload(Organization.phones),
+            selectinload(Organization.activities),
+        )
+        .order_by(Organization.name.asc())
     )
 
     filters = []
@@ -64,19 +75,49 @@ async def search_organizations(
     if query:
         filters.append(Organization.name.ilike(f"%{query}%"))
 
+    building_filters: list = []
+    if min_lat is not None:
+        building_filters.append(Building.latitude >= min_lat)
+    if max_lat is not None:
+        building_filters.append(Building.latitude <= max_lat)
+    if min_lon is not None:
+        building_filters.append(Building.longitude >= min_lon)
+    if max_lon is not None:
+        building_filters.append(Building.longitude <= max_lon)
+
+    # Circle filter narrows down via bounding box to minimize rows fetched.
+    if lat is not None and lon is not None and radius_km is not None:
+        lat_delta = _km_to_lat_delta(radius_km)
+        lon_delta = _km_to_lon_delta(radius_km, lat)
+        building_filters.extend(
+            [
+                Building.latitude >= lat - lat_delta,
+                Building.latitude <= lat + lat_delta,
+                Building.longitude >= lon - lon_delta,
+                Building.longitude <= lon + lon_delta,
+            ]
+        )
+
+    if building_filters:
+        stmt = stmt.join(Building)
+        filters.extend(building_filters)
+
     if filters:
         stmt = stmt.where(*filters)
+
+    stmt = stmt.offset(offset).limit(limit)
 
     result = await session.scalars(stmt)
     organizations = list(result)
 
-    filtered = [
-        org
-        for org in organizations
-        if _match_geo_filters(org, lat, lon, radius_km, min_lat, max_lat, min_lon, max_lon)
-    ]
-    filtered.sort(key=lambda o: o.name)
-    return filtered
+    if lat is not None and lon is not None and radius_km is not None:
+        organizations = [
+            org
+            for org in organizations
+            if _match_geo_filters(org, lat, lon, radius_km, min_lat, max_lat, min_lon, max_lon)
+        ]
+
+    return organizations
 
 
 async def _ensure_building_exists(session: AsyncSession, building_id: int) -> None:
@@ -194,3 +235,14 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     a = math.sin(d_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return r * c
+
+
+def _km_to_lat_delta(radius_km: float) -> float:
+    return radius_km / 111.0
+
+
+def _km_to_lon_delta(radius_km: float, lat: float) -> float:
+    base = math.cos(math.radians(lat)) * 111.0
+    if base == 0:
+        return radius_km / 111.0
+    return radius_km / base

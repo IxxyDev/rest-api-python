@@ -1,6 +1,12 @@
 import os
 from pathlib import Path
 
+TEST_API_KEY = "test-api-key"
+TEST_DB_URL = "sqlite+aiosqlite:///./test.db"
+
+os.environ.setdefault("API_KEY", TEST_API_KEY)
+os.environ.setdefault("DATABASE_URL", TEST_DB_URL)
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,9 +16,6 @@ from app.db import session as db_session_module
 from app.db.base import Base
 from app.main import app
 from tests.factories import SeedDataset, seed_reference_data
-
-TEST_API_KEY = "test-api-key"
-TEST_DB_URL = "sqlite+aiosqlite:///./test.db"
 
 
 @pytest.fixture(autouse=True, scope="session")

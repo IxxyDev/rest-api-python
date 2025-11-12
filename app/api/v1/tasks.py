@@ -15,9 +15,11 @@ router = APIRouter()
 )
 async def list_tasks(
     building_id: int = Query(..., gt=0),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     _: str = Depends(get_api_key),
     session: AsyncSession = Depends(get_db_session),
 ) -> dict:
-    tasks = await list_tasks_for_building(session, building_id)
+    tasks = await list_tasks_for_building(session, building_id, limit=limit, offset=offset)
     items = [serialize_task(task) for task in tasks]
-    return {"total": len(items), "items": items}
+    return {"total": len(items), "items": items, "limit": limit, "offset": offset}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, Float, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import CheckConstraint, Column, Float, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -28,8 +28,8 @@ class Building(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     city: Mapped[str] = mapped_column(String(120), nullable=False)
     address: Mapped[str] = mapped_column(String(255), nullable=False)
-    latitude: Mapped[float] = mapped_column(Float, nullable=False)
-    longitude: Mapped[float] = mapped_column(Float, nullable=False)
+    latitude: Mapped[float] = mapped_column(Float, nullable=False, index=True)
+    longitude: Mapped[float] = mapped_column(Float, nullable=False, index=True)
 
     organizations: Mapped[list["Organization"]] = relationship(
         back_populates="building",
@@ -49,6 +49,7 @@ class Organization(Base):
     building_id: Mapped[int] = mapped_column(
         ForeignKey("buildings.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
 
     building: Mapped["Building"] = relationship(back_populates="organizations")
@@ -84,8 +85,9 @@ class Activity(Base):
     parent_id: Mapped[int | None] = mapped_column(
         ForeignKey("activities.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
-    level: Mapped[int] = mapped_column(Integer, nullable=False)
+    level: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
 
     parent: Mapped["Activity | None"] = relationship(
         remote_side="Activity.id",
@@ -98,6 +100,13 @@ class Activity(Base):
     organizations: Mapped[list["Organization"]] = relationship(
         secondary=organization_activity_table,
         back_populates="activities",
+    )
+    __table_args__ = (
+        CheckConstraint("level BETWEEN 1 AND 3", name="ck_activities_level_range"),
+        CheckConstraint(
+            "(parent_id IS NULL AND level = 1) OR (parent_id IS NOT NULL AND level > 1)",
+            name="ck_activities_level_parent",
+        ),
     )
 
 

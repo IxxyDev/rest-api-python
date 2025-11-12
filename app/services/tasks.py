@@ -11,6 +11,9 @@ from app.models.entities import Building, Task
 async def list_tasks_for_building(
     session: AsyncSession,
     building_id: int,
+    *,
+    limit: int,
+    offset: int,
 ) -> list[Task]:
     exists_stmt = select(Building.id).where(Building.id == building_id)
     exists = await session.scalar(exists_stmt)
@@ -22,6 +25,8 @@ async def list_tasks_for_building(
         .options(selectinload(Task.building))
         .where(Task.building_id == building_id)
         .order_by(Task.title.asc())
+        .offset(offset)
+        .limit(limit)
     )
     tasks = await session.scalars(stmt)
     return list(tasks)

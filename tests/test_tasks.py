@@ -27,3 +27,21 @@ async def test_list_tasks_for_building(
     assert first_task["building"]["address"] == "Ленинский проспект, 10"
     assert first_task["building"]["location"]["lat"] == 55.751244
     assert first_task["building"]["location"]["lon"] == 37.618423
+
+
+async def test_tasks_pagination(
+    async_client: AsyncClient,
+    seed_dataset: SeedDataset,
+) -> None:
+    response = await async_client.get(
+        "/api/v1/tasks",
+        params={
+            "building_id": seed_dataset.primary_building_id,
+            "limit": 1,
+            "offset": 1,
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 1
+    assert payload["items"][0]["title"] == "Проверка пожарной сигнализации"
